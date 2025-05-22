@@ -1,0 +1,54 @@
+name: Replicar COMBINADA a ramas secundarias
+
+on:
+  push:
+    branches:
+      - COMBINADA
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Necesario para poder comparar ramas
+
+      - name: Configurar Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Obtener cambios en remoto
+        run: git fetch origin
+
+      - name: Verificar y fusionar ramas
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        run: |
+          ORIGEN="COMBINADA"
+          RAMAS_DESTINO=("RAMA_DIEGO" "RAMA_ABIGAIL" "RAMA_GUSTAVO" "RAMA_JUSTIN" "RAMA_WILIAM")
+
+          for DESTINO in "${RAMAS_DESTINO[@]}"; do
+            echo "Revisando $DESTINO..."
+
+            # Verificar que la rama destino no tenga cambios únicos (commit detrás de origen)
+            BASE=$(git merge-base origin/$ORIGEN origin/$DESTINO)
+            HEAD_ORIGEN=$(git rev-parse origin/$ORIGEN)
+            HEAD_DESTINO=$(git rev-parse origin/$DESTINO)
+
+            if [ "$BASE" = "$HEAD_DESTINO" ]; then
+              echo "$DESTINO está limpio, iniciando merge..."
+              git checkout -b temp-$DESTINO origin/$DESTINO
+              git merge --ff-only origin/$ORIGEN
+
+              git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:$DESTINO
+              git checkout $ORIGEN
+              git branch -D temp-$DESTINO
+
+              echo "✅ $DESTINO actualizado correctamente."
+            else
+              echo "⚠️ $DESTINO tiene cambios únicos. No se actualiza."
+            fi
+          done
