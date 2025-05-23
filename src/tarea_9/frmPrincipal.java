@@ -14,10 +14,7 @@ import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author WillGP
- */
+
 public class frmPrincipal extends javax.swing.JFrame {
 
     private ArrayList<Integer> listaNumeros = new ArrayList<>();
