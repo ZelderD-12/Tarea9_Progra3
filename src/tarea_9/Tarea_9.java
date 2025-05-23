@@ -16,7 +16,9 @@ public class Tarea_9 {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        //Ejemplo
+        frmPrincipal frmprincipal = new frmPrincipal();
+        frmprincipal.setLocationRelativeTo(null);
+        frmprincipal.setVisible(true);
     }
     
 }
