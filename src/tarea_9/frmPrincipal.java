@@ -19,6 +19,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 //Hola
 public class frmPrincipal extends javax.swing.JFrame {
@@ -66,6 +67,55 @@ private void actualizarVisualizaciones() {
         txtHashSalida.append("Clave: " + entrada.getKey() + " → Valor: " + entrada.getValue() + "\n");
     }
 }
+
+        // Métodos para la Tabla Hash de busqueda
+    private boolean buscarEnTablaHash(String texto, int numero) {
+        if (texto == null || texto.isEmpty()) return false;
+    
+     String[] entradas = texto.split("\n");
+        for (String entrada : entradas) {
+         try {
+             if (entrada.contains("Clave:") && entrada.contains("→ Valor:")) {
+                    String claveStr = entrada.split("Clave:")[1].split("→")[0].trim();
+                  int clave = Integer.parseInt(claveStr);
+                 if (clave == numero) {
+                        return true;
+                   }
+                }
+            } catch (Exception ex) {
+                continue;
+         }
+     }
+     return false;
+    }
+        // Metodo para la Tabla Enlazada de Busqueda
+    private boolean buscarEnTablaEnlazada(String texto, int numero) {
+     if (texto == null || texto.isEmpty()) return false;
+    
+        String[] numeros = texto.split("[\\s,;]+");
+     for (String numStr : numeros) {
+         try {
+             int num = Integer.parseInt(numStr.trim());
+               if (num == numero) {
+                   return true;
+               }
+         } catch (NumberFormatException ex) {
+                continue;
+          }
+        }
+        return false;
+    }
+    
+    private String formatarTiempo(long nanos) {
+     long milisegundos = nanos / 1_000_000;
+        long segundos = milisegundos / 1_000;
+        long minutos = segundos / 60;
+    
+        milisegundos = milisegundos % 1_000;
+        segundos = segundos % 60;
+    
+        return String.format("%02d:%02d.%03d", minutos, segundos, milisegundos);
+    }
     
     
     
@@ -144,6 +194,11 @@ private void actualizarVisualizaciones() {
         btnBuscar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         btnBuscar.setForeground(new java.awt.Color(255, 255, 255));
         btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
 
         btnEliminar.setBackground(new java.awt.Color(0, 0, 153));
         btnEliminar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
@@ -290,15 +345,14 @@ private void actualizarVisualizaciones() {
                                 .addComponent(jLabel14)
                                 .addGap(22, 22, 22)
                                 .addComponent(lblagregarl))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(jLabel16)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(lblbuscarl))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(jLabel18)
-                                    .addGap(22, 22, 22)
-                                    .addComponent(lbleliminarl))))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel16)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblbuscarl))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel18)
+                                .addGap(22, 22, 22)
+                                .addComponent(lbleliminarl)))))
                 .addContainerGap(30, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -531,6 +585,66 @@ private void actualizarVisualizaciones() {
             JOptionPane.ERROR_MESSAGE);
     }
     }//GEN-LAST:event_btnEliminarActionPerformed
+
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+           String numeroStr = JOptionPane.showInputDialog(this, "Ingrese el número a buscar:", "Búsqueda", JOptionPane.QUESTION_MESSAGE);
+    
+    if (numeroStr == null || numeroStr.trim().isEmpty()) {
+        return; // El usuario canceló o no ingresó nada
+    }
+    
+    try {
+        int numeroABuscar = Integer.parseInt(numeroStr.trim());
+        
+        // Obtener los textos de las áreas de texto
+        String textoHash = txtHashSalida.getText();
+        String textoNormal = txtSalida.getText();
+        
+        // Crear hilos para cada tipo de búsqueda
+        Thread hashThread = new Thread(() -> {
+            System.out.println("[HASH] Iniciando búsqueda en tabla hash...");
+            long inicio = System.nanoTime();
+            boolean encontrado = buscarEnTablaHash(textoHash, numeroABuscar);
+            long fin = System.nanoTime();
+            String tiempoFormateado = formatarTiempo(fin - inicio);
+            System.out.println("[HASH] Búsqueda completada en " + tiempoFormateado);
+            System.out.println("[HASH] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
+            
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(this, 
+                    "Tabla Hash: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO") + 
+                    "\nTiempo: " + tiempoFormateado,
+                    "Resultado Búsqueda", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            });
+        });
+        
+        Thread normalThread = new Thread(() -> {
+            System.out.println("[ENLAZADA] Iniciando búsqueda en tabla enlazada...");
+            long inicio = System.nanoTime();
+            boolean encontrado = buscarEnTablaEnlazada(textoNormal, numeroABuscar);
+            long fin = System.nanoTime();
+            String tiempoFormateado = formatarTiempo(fin - inicio);
+            System.out.println("[ENLAZADA] Búsqueda completada en " + tiempoFormateado);
+            System.out.println("[ENLAZADA] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
+            
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(this, 
+                    "Tabla Enlazada: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO") + 
+                    "\nTiempo: " + tiempoFormateado,
+                    "Resultado Búsqueda", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            });
+        });
+        
+        // Iniciar ambos hilos
+        hashThread.start();
+        normalThread.start();
+        
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Por favor ingrese un número válido", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnBuscarActionPerformed
 
     /**
      * @param args the command line arguments
