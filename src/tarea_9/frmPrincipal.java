@@ -20,11 +20,18 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import metodo.hashSet;
 
 //Hola
 public class frmPrincipal extends javax.swing.JFrame {
 
     private ArrayList<Integer> listaNumeros = new ArrayList<>();
+    private hashSet<String> hashSet;
+    private linkedList<String> linkedList;
+    private tblHashSet modeloHash;
+    private lstLinkedList<String> modeloLista;
+    private lblTiempoLinkedList lblTiempoLinkedList;
+    private lblTiempoHash lblTiempoHash;
 
     /**
      * Creates new form frmPrincipal
@@ -32,9 +39,14 @@ public class frmPrincipal extends javax.swing.JFrame {
     public frmPrincipal() {
         initComponents();
         getContentPane().setBackground(new Color(51, 255, 168));
-        txaDatos.setEditable(false);
         txaDatos.setBackground(Color.WHITE);
         txaDatos.setForeground(Color.BLACK);
+        
+         // Inicialización de estructuras personalizadas
+        hashSet = new hashSet<>();
+        linkedList = new linkedList<>();
+        modeloHash = new tblHashSet();
+        modeloLista = new lstLinkedList<>("Elementos LinkedList");
     }
 
     
@@ -117,6 +129,39 @@ private void actualizarVisualizaciones() {
         return String.format("%02d:%02d.%03d", minutos, segundos, milisegundos);
     }
     
+    private void actualizarVisualizacionesCompletas() {
+    // Actualizar txtSalida (Lista Enlazada)
+    if (txtSalida != null && linkedList != null) {
+        txtSalida.setText(""); // Limpiar contenido previo
+        
+        // Mostrar todos los elementos de la lista enlazada
+        for (String elemento : linkedList.elements()) {
+            txtSalida.append(elemento + "\n");
+        }
+    }
+    
+    // Actualizar txtHashSalida (Tabla Hash)
+    if (txtHashSalida != null && linkedList != null) {
+        txtHashSalida.setText(""); // Limpiar contenido previo
+        Map<Integer, String> tablaHash = new HashMap<>();
+        int posicion = 0;
+        
+        // Llenar la tabla hash
+        for (String elemento : linkedList.toStandardList()) {
+            tablaHash.put(posicion++, elemento);
+            txtHashSalida.append("Clave: " + (posicion-1) + " → Valor: " + elemento + "\n");
+        }
+    }
+    
+    // Actualizar txaDatos (consola principal)
+    if (txaDatos != null && linkedList != null) {
+        txaDatos.setText("");
+        for (String elemento : linkedList.elements()) {
+            txaDatos.append(elemento + "\n");
+        }
+      }
+    }
+    
     
     
      
@@ -179,6 +224,11 @@ private void actualizarVisualizaciones() {
         btnAgregar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         btnAgregar.setForeground(new java.awt.Color(255, 255, 255));
         btnAgregar.setText("Agregar");
+        btnAgregar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAgregarActionPerformed(evt);
+            }
+        });
 
         btnCargar.setBackground(new java.awt.Color(0, 0, 153));
         btnCargar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
@@ -345,14 +395,15 @@ private void actualizarVisualizaciones() {
                                 .addComponent(jLabel14)
                                 .addGap(22, 22, 22)
                                 .addComponent(lblagregarl))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel16)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblbuscarl))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel18)
-                                .addGap(22, 22, 22)
-                                .addComponent(lbleliminarl)))))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(jLabel16)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(lblbuscarl))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(jLabel18)
+                                    .addGap(22, 22, 22)
+                                    .addComponent(lbleliminarl))))))
                 .addContainerGap(30, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -588,7 +639,8 @@ private void actualizarVisualizaciones() {
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
            String numeroStr = JOptionPane.showInputDialog(this, "Ingrese el número a buscar:", "Búsqueda", JOptionPane.QUESTION_MESSAGE);
-    
+    lblbuscarh.setText("00:00:000");
+    lblbuscarl.setText("00:00:000");
     if (numeroStr == null || numeroStr.trim().isEmpty()) {
         return; // El usuario canceló o no ingresó nada
     }
@@ -608,6 +660,7 @@ private void actualizarVisualizaciones() {
             long fin = System.nanoTime();
             String tiempoFormateado = formatarTiempo(fin - inicio);
             System.out.println("[HASH] Búsqueda completada en " + tiempoFormateado);
+            lblbuscarh.setText(tiempoFormateado);
             System.out.println("[HASH] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
             
             SwingUtilities.invokeLater(() -> {
@@ -626,6 +679,7 @@ private void actualizarVisualizaciones() {
             long fin = System.nanoTime();
             String tiempoFormateado = formatarTiempo(fin - inicio);
             System.out.println("[ENLAZADA] Búsqueda completada en " + tiempoFormateado);
+            lblbuscarl.setText(tiempoFormateado);
             System.out.println("[ENLAZADA] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
             
             SwingUtilities.invokeLater(() -> {
@@ -646,9 +700,70 @@ private void actualizarVisualizaciones() {
         }
     }//GEN-LAST:event_btnBuscarActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
+    private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
+       String valor = txaDatos.getText().trim();
+    
+    if (!valor.isEmpty()) {
+        try {
+            // 1. Procesar en HashSet
+            if (hashSet != null && !hashSet.add(valor)) {
+                JOptionPane.showMessageDialog(this, 
+                    "El dato ya existe en el HashSet", 
+                    "Dato duplicado", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // 2. Procesar en LinkedList
+            if (linkedList != null) {
+                linkedList.add(valor);
+            }
+
+            // 3. Actualizar modelo visual
+            if (modeloLista != null) {
+                modeloLista.addElement(valor);
+            }
+
+            // 4. Procesar números
+            try {
+                int numero = Integer.parseInt(valor);
+                listaNumeros.add(numero);
+                
+                // Actualizar txtSalida (Lista Enlazada)
+                if (txtSalida != null) {
+                    txtSalida.append(numero + "\n");
+                }
+            } catch (NumberFormatException e) {
+                // No es número válido
+            }
+
+            // 5. Actualizar todas las visualizaciones
+            actualizarVisualizacionesCompletas();
+
+            // 6. Mostrar confirmación
+            if (txaDatos != null) {
+                txaDatos.append("Dato agregado: " + valor + "\n");
+                txaDatos.setCaretPosition(txaDatos.getDocument().getLength());
+            }
+
+            // Limpiar campo de entrada
+            txaDatos.setText("");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Error inesperado: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    } else {
+        preguntarCargarArchivo();
+        }
+    }//GEN-LAST:event_btnAgregarActionPerformed
+
+     private void preguntarCargarArchivo() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
