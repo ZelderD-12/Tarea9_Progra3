@@ -11,8 +11,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 //Hola
 public class frmPrincipal extends javax.swing.JFrame {
@@ -48,7 +53,9 @@ public class frmPrincipal extends javax.swing.JFrame {
         btnBuscar = new javax.swing.JButton();
         btnEliminar = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
+        txtHashSalida = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
+        txtSalida = new javax.swing.JTextArea();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -82,6 +89,11 @@ public class frmPrincipal extends javax.swing.JFrame {
         btnMostrar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         btnMostrar.setForeground(new java.awt.Color(255, 255, 255));
         btnMostrar.setText("Mostrar");
+        btnMostrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMostrarActionPerformed(evt);
+            }
+        });
 
         btnAgregar.setBackground(new java.awt.Color(0, 0, 153));
         btnAgregar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
@@ -107,6 +119,14 @@ public class frmPrincipal extends javax.swing.JFrame {
         btnEliminar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         btnEliminar.setForeground(new java.awt.Color(255, 255, 255));
         btnEliminar.setText("Eliminar");
+
+        txtHashSalida.setColumns(20);
+        txtHashSalida.setRows(5);
+        jScrollPane2.setViewportView(txtHashSalida);
+
+        txtSalida.setColumns(20);
+        txtSalida.setRows(5);
+        jScrollPane3.setViewportView(txtSalida);
 
         jLabel2.setFont(new java.awt.Font("Copperplate Gothic Bold", 1, 18)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(0, 0, 153));
@@ -235,15 +255,14 @@ public class frmPrincipal extends javax.swing.JFrame {
                                 .addComponent(jLabel14)
                                 .addGap(22, 22, 22)
                                 .addComponent(lblagregarl))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(jLabel16)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(lblbuscarl))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addComponent(jLabel18)
-                                    .addGap(22, 22, 22)
-                                    .addComponent(lbleliminarl))))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel16)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblbuscarl))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel18)
+                                .addGap(22, 22, 22)
+                                .addComponent(lbleliminarl)))))
                 .addContainerGap(30, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -337,7 +356,7 @@ public class frmPrincipal extends javax.swing.JFrame {
                                 try {
                                     int numero = Integer.parseInt(num);
                                     listaNumeros.add(numero);
-                                    contenido.append(numero).append(",\n");
+                                    contenido.append(numero).append("\n");
                                 } catch (NumberFormatException e) {
                                 }
                             }
@@ -353,6 +372,32 @@ public class frmPrincipal extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_btnCargarActionPerformed
+
+    private void btnMostrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMostrarActionPerformed
+    // Listas enlazadas
+    // Pasar de ArrayList a LinkedList para la lista enlazada
+    LinkedList<Integer> listaEnlazada = new LinkedList<>(listaNumeros);
+
+    // Mostrar en JTextArea existente
+    txtSalida.setText(""); // Limpia el área de texto
+    for (Integer numero : listaEnlazada) {
+        txtSalida.append(numero + "\n");
+    }
+    
+    //Tabla HASH
+    HashMap<Integer, Integer> tablaHash = new HashMap<>();
+    int posicion = 0;
+    for (Integer numero : listaEnlazada) {
+        tablaHash.put(posicion, numero);
+        posicion++;
+    }
+
+    // Mostrar tabla hash en el JTextArea
+    txtHashSalida.setText(""); // Limpia el JTextArea
+    for (Map.Entry<Integer, Integer> entrada : tablaHash.entrySet()) {
+        txtHashSalida.append("Clave: " + entrada.getKey() + " → Valor: " + entrada.getValue() + "\n");
+    }
+    }//GEN-LAST:event_btnMostrarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -406,7 +451,6 @@ public class frmPrincipal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
@@ -419,5 +463,7 @@ public class frmPrincipal extends javax.swing.JFrame {
     private javax.swing.JLabel lblmostrarh;
     private javax.swing.JLabel lblmostrarl;
     private javax.swing.JTextArea txaDatos;
+    private javax.swing.JTextArea txtHashSalida;
+    private javax.swing.JTextArea txtSalida;
     // End of variables declaration//GEN-END:variables
 }
