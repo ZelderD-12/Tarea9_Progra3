@@ -396,7 +396,7 @@ public class frmPrincipal extends javax.swing.JFrame {
         milis = milis % 1000;
         segundos = segundos % 60;
 
-        return String.format("%d min, %d seg, %d ms", minutos, segundos, milis);
+        return String.format("%02d:%02d:%03d", minutos, segundos, milis);
     }
 
     @SuppressWarnings("unchecked")
@@ -995,6 +995,9 @@ public class frmPrincipal extends javax.swing.JFrame {
                     + "• Lista Enlazada: " + tiempoListaStr,
                     "Tiempos de Ejecución",
                     JOptionPane.INFORMATION_MESSAGE);
+
+            lblagregarh.setText(tiempoHashStr);
+            lblagregarl.setText(tiempoListaStr);
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Por favor ingrese un número válido", "Error", JOptionPane.ERROR_MESSAGE);
