@@ -37,274 +37,292 @@ public class frmPrincipal extends javax.swing.JFrame {
     private lblTiempoHash lblTiempoHash;
     private int contadorClaves = 0;
 
-
-
     public frmPrincipal() {
         initComponents();
         getContentPane().setBackground(new Color(51, 255, 168));
         txaDatos.setBackground(Color.WHITE);
         txaDatos.setForeground(Color.BLACK);
-        
-         // Inicialización de estructuras personalizadas
+
+        // Inicialización de estructuras personalizadas
         hashSet = new hashSet<>();
         linkedList = new linkedList<>();
         modeloHash = new tblHashSet();
         modeloLista = new lstLinkedList<>("Elementos LinkedList");
-     
+
         this.txtHashSalida = txtHashSalida;
         this.txtSalida = txtSalida;
-        
+
     }
 
-    
     // Método auxiliar para actualizar ambas visualizaciones
-private void actualizarVisualizaciones() {
-    // Actualizar el área de datos originales
-    StringBuilder contenido = new StringBuilder();
-    for (Integer numero : listaNumeros) {
-        contenido.append(numero).append("\n");
-    }
-    txaDatos.setText(contenido.toString());
-    
-    // Actualizar lista enlazada
-    LinkedList<Integer> listaEnlazada = new LinkedList<>(listaNumeros);
-    txtSalida.setText("");
-    for (Integer numero : listaEnlazada) {
-        txtSalida.append(numero + "\n");
-    }
-    
-    // Actualizar tabla hash
-    HashMap<Integer, Integer> tablaHash = new HashMap<>();
-    int posicion = 0;
-    for (Integer numero : listaEnlazada) {
-        tablaHash.put(posicion, numero);
-        posicion++;
-    }
-    
-    txtHashSalida.setText("");
-    for (Map.Entry<Integer, Integer> entrada : tablaHash.entrySet()) {
-        txtHashSalida.append("Clave: " + entrada.getKey() + " → Valor: " + entrada.getValue() + "\n");
-    }
-}
+    private void actualizarVisualizaciones() {
+        // Actualizar el área de datos originales
+        StringBuilder contenido = new StringBuilder();
+        for (Integer numero : listaNumeros) {
+            contenido.append(numero).append("\n");
+        }
+        txaDatos.setText(contenido.toString());
 
-        // Métodos para la Tabla Hash de busqueda
+        // Actualizar lista enlazada
+        LinkedList<Integer> listaEnlazada = new LinkedList<>(listaNumeros);
+        txtSalida.setText("");
+        for (Integer numero : listaEnlazada) {
+            txtSalida.append(numero + "\n");
+        }
+
+        // Actualizar tabla hash
+        HashMap<Integer, Integer> tablaHash = new HashMap<>();
+        int posicion = 0;
+        for (Integer numero : listaEnlazada) {
+            tablaHash.put(posicion, numero);
+            posicion++;
+        }
+
+        txtHashSalida.setText("");
+        for (Map.Entry<Integer, Integer> entrada : tablaHash.entrySet()) {
+            txtHashSalida.append("Clave: " + entrada.getKey() + " → Valor: " + entrada.getValue() + "\n");
+        }
+    }
+
+    // Métodos para la Tabla Hash de busqueda
     private boolean buscarEnTablaHash(String texto, int numero) {
-        if (texto == null || texto.isEmpty()) return false;
-    
-     String[] entradas = texto.split("\n");
+        if (texto == null || texto.isEmpty()) {
+            return false;
+        }
+
+        String[] entradas = texto.split("\n");
         for (String entrada : entradas) {
-         try {
-             if (entrada.contains("Clave:") && entrada.contains("→ Valor:")) {
+            try {
+                if (entrada.contains("Clave:") && entrada.contains("→ Valor:")) {
                     String claveStr = entrada.split("Clave:")[1].split("→")[0].trim();
-                  int clave = Integer.parseInt(claveStr);
-                 if (clave == numero) {
+                    int clave = Integer.parseInt(claveStr);
+                    if (clave == numero) {
                         return true;
-                   }
+                    }
                 }
             } catch (Exception ex) {
                 continue;
-         }
-     }
-     return false;
-    }
-        // Metodo para la Tabla Enlazada de Busqueda
-    private boolean buscarEnTablaEnlazada(String texto, int numero) {
-     if (texto == null || texto.isEmpty()) return false;
-    
-        String[] numeros = texto.split("[\\s,;]+");
-     for (String numStr : numeros) {
-         try {
-             int num = Integer.parseInt(numStr.trim());
-               if (num == numero) {
-                   return true;
-               }
-         } catch (NumberFormatException ex) {
-                continue;
-          }
+            }
         }
         return false;
     }
-    
+    // Metodo para la Tabla Enlazada de Busqueda
+
+    private boolean buscarEnTablaEnlazada(String texto, int numero) {
+        if (texto == null || texto.isEmpty()) {
+            return false;
+        }
+
+        String[] numeros = texto.split("[\\s,;]+");
+        for (String numStr : numeros) {
+            try {
+                int num = Integer.parseInt(numStr.trim());
+                if (num == numero) {
+                    return true;
+                }
+            } catch (NumberFormatException ex) {
+                continue;
+            }
+        }
+        return false;
+    }
+
     private String formatarTiempo(long nanos) {
-     long milisegundos = nanos / 1_000_000;
+        long milisegundos = nanos / 1_000_000;
         long segundos = milisegundos / 1_000;
         long minutos = segundos / 60;
-    
+
         milisegundos = milisegundos % 1_000;
         segundos = segundos % 60;
-    
+
         return String.format("%02d:%02d.%03d", minutos, segundos, milisegundos);
     }
-    
+
+    private String formatoTiempo(long nanosegundos) {
+        long milisegundos = nanosegundos / 1_000_000;
+        long minutos = milisegundos / 60000;
+        long segundos = (milisegundos % 60000) / 1000;
+        long ms = milisegundos % 1000;
+
+        return String.format("%02d:%02d:%03d", minutos, segundos, ms);
+    }
+
+    private String formatearTiempo(long milisegundos) {
+        long minutos = (milisegundos / 60000) % 60;
+        long segundos = (milisegundos / 1000) % 60;
+        long milis = milisegundos % 1000;
+        return String.format("%02d:%02d:%03d", minutos, segundos, milis);
+    }
+
     private void actualizarVisualizacionesCompletas() {
-    // Actualizar txtSalida (Lista Enlazada)
-    if (txtSalida != null && linkedList != null) {
-        txtSalida.setText(""); // Limpiar contenido previo
-        
-        // Mostrar todos los elementos de la lista enlazada
-        for (String elemento : linkedList.elements()) {
-            txtSalida.append(elemento + "\n");
+        // Actualizar txtSalida (Lista Enlazada)
+        if (txtSalida != null && linkedList != null) {
+            txtSalida.setText(""); // Limpiar contenido previo
+
+            // Mostrar todos los elementos de la lista enlazada
+            for (String elemento : linkedList.elements()) {
+                txtSalida.append(elemento + "\n");
+            }
+        }
+
+        // Actualizar txtHashSalida (Tabla Hash)
+        if (txtHashSalida != null && linkedList != null) {
+            txtHashSalida.setText(""); // Limpiar contenido previo
+            Map<Integer, String> tablaHash = new HashMap<>();
+            int posicion = 0;
+
+            // Llenar la tabla hash
+            for (String elemento : linkedList.toStandardList()) {
+                tablaHash.put(posicion++, elemento);
+                txtHashSalida.append("Clave: " + (posicion - 1) + " → Valor: " + elemento + "\n");
+            }
+        }
+
+        // Actualizar txaDatos (consola principal)
+        if (txaDatos != null && linkedList != null) {
+            txaDatos.setText("");
+            for (String elemento : linkedList.elements()) {
+                txaDatos.append(elemento + "\n");
+            }
         }
     }
-    
-    // Actualizar txtHashSalida (Tabla Hash)
-    if (txtHashSalida != null && linkedList != null) {
-        txtHashSalida.setText(""); // Limpiar contenido previo
-        Map<Integer, String> tablaHash = new HashMap<>();
-        int posicion = 0;
-        
-        // Llenar la tabla hash
-        for (String elemento : linkedList.toStandardList()) {
-            tablaHash.put(posicion++, elemento);
-            txtHashSalida.append("Clave: " + (posicion-1) + " → Valor: " + elemento + "\n");
-        }
-    }
-    
-    // Actualizar txaDatos (consola principal)
-    if (txaDatos != null && linkedList != null) {
-        txaDatos.setText("");
-        for (String elemento : linkedList.elements()) {
-            txaDatos.append(elemento + "\n");
-        }
-      }
-    }
-    
+
     private void procesarNuevoValor(String valor) {
-            try {
-        // 1. Verificar y agregar al HashSet
-        if (hashSet != null) {
-            if (!hashSet.add(valor)) {
-                // Solo mostrar advertencia si es interacción directa (no carga inicial)
-                if (JOptionPane.getRootFrame().isActive()) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        "El dato '" + valor + "' ya existe",
-                        "Dato duplicado",
-                        JOptionPane.WARNING_MESSAGE
-                    );
-                }
-                return;
-            }
-
-            // 2. Actualizar visualización en txtHashSalida
-            if (txtHashSalida != null) {
-                txtHashSalida.append("Clave: " + contadorClaves + " → Valor: " + valor + "\n");
-            }
-        }
-
-        // 3. Incrementar contador (solo si fue valor nuevo)
-        contadorClaves++;
-
-        // 4. Agregar a LinkedList
-        if (linkedList != null) {
-            linkedList.add(valor);
-        }
-
-        // 5. Procesar números en txtSalida
         try {
-            int numero = Integer.parseInt(valor);
-            if (listaNumeros != null) {
-                listaNumeros.add(numero);
-            }
-            if (txtSalida != null) {
-                txtSalida.append(valor + "\n");
-            }
-        } catch (NumberFormatException e) {
-            // No es número, continuar sin problemas
-        }
+            // 1. Verificar y agregar al HashSet
+            if (hashSet != null) {
+                if (!hashSet.add(valor)) {
+                    // Solo mostrar advertencia si es interacción directa (no carga inicial)
+                    if (JOptionPane.getRootFrame().isActive()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "El dato '" + valor + "' ya existe",
+                                "Dato duplicado",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                    }
+                    return;
+                }
 
-        // 6. Actualizar modelo visual (JList, JTable, etc.)
-        if (modeloLista != null) {
-            modeloLista.addElement(valor);
-        }
+                // 2. Actualizar visualización en txtHashSalida
+                if (txtHashSalida != null) {
+                    txtHashSalida.append("Clave: " + contadorClaves + " → Valor: " + valor + "\n");
+                }
+            }
 
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Error al procesar '" + valor + "': " + e.getMessage(),
-            "Error",
-            JOptionPane.ERROR_MESSAGE
+            // 3. Incrementar contador (solo si fue valor nuevo)
+            contadorClaves++;
+
+            // 4. Agregar a LinkedList
+            if (linkedList != null) {
+                linkedList.add(valor);
+            }
+
+            // 5. Procesar números en txtSalida
+            try {
+                int numero = Integer.parseInt(valor);
+                if (listaNumeros != null) {
+                    listaNumeros.add(numero);
+                }
+                if (txtSalida != null) {
+                    txtSalida.append(valor + "\n");
+                }
+            } catch (NumberFormatException e) {
+                // No es número, continuar sin problemas
+            }
+
+            // 6. Actualizar modelo visual (JList, JTable, etc.)
+            if (modeloLista != null) {
+                modeloLista.addElement(valor);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error al procesar '" + valor + "': " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
             );
         }
     }
-    
-     private void procesarDatos() {
+
+    private void procesarDatos() {
         // Pedir el número a insertar
         String input = JOptionPane.showInputDialog(null, "Ingrese el número a insertar:", "Entrada de datos", JOptionPane.QUESTION_MESSAGE);
         if (input == null || input.trim().isEmpty()) {
             return; // El usuario canceló o no ingresó nada
         }
-        
+
         try {
             int numeroInsertar = Integer.parseInt(input.trim());
-            
+
             // Procesar tabla hash
             long inicioHash = System.nanoTime();
             procesarTablaHash(numeroInsertar);
             long finHash = System.nanoTime();
             long tiempoHash = finHash - inicioHash;
-            
+
             // Procesar tabla enlazada
             long inicioLista = System.nanoTime();
             procesarTablaEnlazada(numeroInsertar);
             long finLista = System.nanoTime();
             long tiempoLista = finLista - inicioLista;
-            
+
             // Mostrar tiempos
             String tiempoHashStr = formatTiempo(tiempoHash);
             String tiempoListaStr = formatTiempo(tiempoLista);
-            
-            JOptionPane.showMessageDialog(null, 
-                "Tiempos de inserción:\n" +
-                "Tabla Hash: " + tiempoHashStr + "\n" +
-                "Tabla Enlazada: " + tiempoListaStr,
-                "Resultados de Tiempo",
-                JOptionPane.INFORMATION_MESSAGE);
-                
+
+            JOptionPane.showMessageDialog(null,
+                    "Tiempos de inserción:\n"
+                    + "Tabla Hash: " + tiempoHashStr + "\n"
+                    + "Tabla Enlazada: " + tiempoListaStr,
+                    "Resultados de Tiempo",
+                    JOptionPane.INFORMATION_MESSAGE);
+
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(null, "Por favor ingrese un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
-       private void procesarListaEnlazada(int numero) {
-    // Obtener el texto actual del área de texto
-    String textoActual = txtSalida.getText();
-    String[] numerosStr = textoActual.split("\n");
-    
-    // Crear una lista enlazada
-    LinkedList<Integer> lista = new LinkedList<>();
-    
-    // Procesar números existentes
-    for (String numStr : numerosStr) {
-        try {
-            int num = Integer.parseInt(numStr.trim());
-            lista.add(num);
-        } catch (NumberFormatException ex) {
-            // Ignorar líneas no numéricas
+
+    private void procesarListaEnlazada(int numero) {
+        // Obtener el texto actual del área de texto
+        String textoActual = txtSalida.getText();
+        String[] numerosStr = textoActual.split("\n");
+
+        // Crear una lista enlazada
+        LinkedList<Integer> lista = new LinkedList<>();
+
+        // Procesar números existentes
+        for (String numStr : numerosStr) {
+            try {
+                int num = Integer.parseInt(numStr.trim());
+                lista.add(num);
+            } catch (NumberFormatException ex) {
+                // Ignorar líneas no numéricas
+            }
         }
+
+        // Insertar el nuevo número al inicio (puedes cambiarlo a addLast() si prefieres)
+        lista.addFirst(numero);
+
+        // Reconstruir el texto para el JTextArea
+        StringBuilder nuevoTexto = new StringBuilder();
+        for (Integer num : lista) {
+            nuevoTexto.append(num).append("\n");
+        }
+
+        // Actualizar el área de texto
+        txtSalida.setText(nuevoTexto.toString());
     }
-    
-    // Insertar el nuevo número al inicio (puedes cambiarlo a addLast() si prefieres)
-    lista.addFirst(numero);
-    
-    // Reconstruir el texto para el JTextArea
-    StringBuilder nuevoTexto = new StringBuilder();
-    for (Integer num : lista) {
-        nuevoTexto.append(num).append("\n");
-    }
-    
-    // Actualizar el área de texto
-    txtSalida.setText(nuevoTexto.toString());
-}
-    
+
     private void procesarTablaHash(int numeroInsertar) {
         // Obtener texto del área
         String texto = txtHashSalida.getText();
         String[] lineas = texto.split("\n");
-        
+
         // Crear tabla hash
         Hashtable<Integer, Integer> tablaHash = new Hashtable<>();
-        
+
         // Procesar cada línea
         for (String linea : lineas) {
             if (linea.contains("→")) {
@@ -314,11 +332,11 @@ private void actualizarVisualizaciones() {
                         // Extraer clave
                         String claveStr = partes[0].replace("Clave:", "").trim();
                         int clave = Integer.parseInt(claveStr);
-                        
+
                         // Extraer valor
                         String valorStr = partes[1].replace("Valor:", "").trim();
                         int valor = Integer.parseInt(valorStr);
-                        
+
                         tablaHash.put(clave, valor);
                     } catch (NumberFormatException ex) {
                         // Ignorar líneas mal formateadas
@@ -326,29 +344,29 @@ private void actualizarVisualizaciones() {
                 }
             }
         }
-        
+
         // Insertar nuevo elemento (usamos un hash simple para la clave)
         int claveNueva = Math.abs(numeroInsertar % 1000000); // Ejemplo de función hash simple
         tablaHash.put(claveNueva, numeroInsertar);
-        
+
         // Actualizar el JTextArea
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<Integer, Integer> entry : tablaHash.entrySet()) {
             sb.append("Clave: ").append(entry.getKey())
-              .append(" → Valor: ").append(entry.getValue())
-              .append("\n");
+                    .append(" → Valor: ").append(entry.getValue())
+                    .append("\n");
         }
         txtHashSalida.setText(sb.toString());
     }
-    
+
     private void procesarTablaEnlazada(int numeroInsertar) {
         // Obtener texto del área
         String texto = txtSalida.getText();
         String[] numerosStr = texto.split("\n");
-        
+
         // Crear lista enlazada
         LinkedList<Integer> lista = new LinkedList<>();
-        
+
         // Procesar cada número
         for (String numStr : numerosStr) {
             try {
@@ -358,10 +376,10 @@ private void actualizarVisualizaciones() {
                 // Ignorar líneas no numéricas
             }
         }
-        
+
         // Insertar nuevo elemento al inicio
         lista.addFirst(numeroInsertar);
-        
+
         // Actualizar el JTextArea
         StringBuilder sb = new StringBuilder();
         for (Integer num : lista) {
@@ -369,18 +387,18 @@ private void actualizarVisualizaciones() {
         }
         txtSalida.setText(sb.toString());
     }
-    
+
     private String formatTiempo(long nanos) {
         long milis = nanos / 1_000_000;
         long segundos = milis / 1000;
         long minutos = segundos / 60;
-        
+
         milis = milis % 1000;
         segundos = segundos % 60;
-        
+
         return String.format("%d min, %d seg, %d ms", minutos, segundos, milis);
     }
-     
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -731,235 +749,259 @@ private void actualizarVisualizaciones() {
     }//GEN-LAST:event_btnCargarActionPerformed
 
     private void btnMostrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMostrarActionPerformed
-    // Listas enlazadas
-    // Pasar de ArrayList a LinkedList para la lista enlazada
-    LinkedList<Integer> listaEnlazada = new LinkedList<>(listaNumeros);
+        // Listas enlazadas
+        // ------------------------ LISTA ENLAZADA ------------------------
+        long inicioLista = System.nanoTime();
 
-    // Mostrar en JTextArea existente
-    txtSalida.setText(""); // Limpia el área de texto
-    
+        // Pasar de ArrayList a LinkedList para la lista enlazada
+        LinkedList<Integer> listaEnlazada = new LinkedList<>(listaNumeros);
 
-    for (Integer numero : listaEnlazada) {
-        txtSalida.append(numero + "\n");
-    }
-    
-    //Tabla HASH
-    HashMap<Integer, Integer> tablaHash = new HashMap<>();
-    int posicion = 0;
-    for (Integer numero : listaEnlazada) {
-        tablaHash.put(posicion, numero);
-        posicion++;
-    }
+        // Mostrar en JTextArea existente
+        txtSalida.setText(""); // Limpia el área de texto
 
-    // Mostrar tabla hash en el JTextArea
-    txtHashSalida.setText(""); // Limpia el JTextArea
-    for (Map.Entry<Integer, Integer> entrada : tablaHash.entrySet()) {
-        txtHashSalida.append("Clave: " + entrada.getKey() + " → Valor: " + entrada.getValue() + "\n");
-    }
+        for (Integer numero : listaEnlazada) {
+            txtSalida.append(numero + "\n");
+        }
+
+        long finLista = System.nanoTime();
+        long duracionLista = finLista - inicioLista;
+
+        // ------------------------ TABLA HASH ------------------------
+        long inicioHash = System.nanoTime();
+
+        //Tabla HASH
+        HashMap<Integer, Integer> tablaHash = new HashMap<>();
+        int posicion = 0;
+        for (Integer numero : listaEnlazada) {
+            tablaHash.put(posicion, numero);
+            posicion++;
+        }
+
+        // Mostrar tabla hash en el JTextArea
+        txtHashSalida.setText(""); // Limpia el JTextArea
+        for (Map.Entry<Integer, Integer> entrada : tablaHash.entrySet()) {
+            txtHashSalida.append("Clave: " + entrada.getKey() + " → Valor: " + entrada.getValue() + "\n");
+        }
+
+        long finHash = System.nanoTime();
+        long duracionHash = finHash - inicioHash;
+
+        // ------------------------ MOSTRAR TIEMPOS ------------------------
+        // Convertir nanosegundos a minutos:segundos:milisegundos
+        lblmostrarl.setText(formatoTiempo(duracionLista));
+        lblmostrarh.setText(formatoTiempo(duracionHash));
     }//GEN-LAST:event_btnMostrarActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-    // Verificar que hay datos cargados
-    if (listaNumeros.isEmpty()) {
-        JOptionPane.showMessageDialog(this, 
-            "No hay datos cargados para eliminar", 
-            "Sin datos", 
-            JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-  
-    String input = JOptionPane.showInputDialog(this, 
-        "Ingrese el número que desea eliminar:", 
-        "Eliminar número", 
-        JOptionPane.QUESTION_MESSAGE);
-    
-    // Verificar que el usuario no canceló y que ingresó algo
-    if (input == null || input.trim().isEmpty()) {
-        return;  
-    }
-    
-    try {
-        int numeroAEliminar = Integer.parseInt(input.trim());
-        
-        // Verificar si el número existe en la lista
-        if (!listaNumeros.contains(numeroAEliminar)) {
-            JOptionPane.showMessageDialog(this, 
-                "El número " + numeroAEliminar + " no se encuentra en los datos", 
-                "Número no encontrado", 
-                JOptionPane.INFORMATION_MESSAGE);
+        // Verificar que hay datos cargados
+        if (listaNumeros.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "No hay datos cargados para eliminar",
+                    "Sin datos",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        // Deshabilitar el botón para evitar múltiples operaciones
-        btnEliminar.setEnabled(false);
-        
-         
-        Thread eliminacionThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    
-                    
-                   // eliminar
-                    int cantidadEliminada = 0;
-                    Iterator<Integer> iterator = listaNumeros.iterator();
-                    while (iterator.hasNext()) {
-                        if (iterator.next().equals(numeroAEliminar)) {
-                            iterator.remove();
-                            cantidadEliminada++;
-                        }
-                    }
-                    
-                    // actualizar vista
-                    actualizarVisualizaciones();
-                    // Variables finales para el EventQueue
-                    final int cantidadFinal = cantidadEliminada;
-                  
-                    java.awt.EventQueue.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                           JOptionPane.showMessageDialog(frmPrincipal.this, 
-                                "Número " + numeroAEliminar + " eliminado por completo.\n" +
-                                "Los datos han sido actualizados en ambas tablas.", 
-                                "Eliminación completada", 
-                                JOptionPane.INFORMATION_MESSAGE);
-                            
-                            btnEliminar.setEnabled(true);
-                        }
-                    });
-                    
-                } catch (Exception e) {
-                    // En caso de error, rehabilitar botón
-                    java.awt.EventQueue.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            JOptionPane.showMessageDialog(frmPrincipal.this, 
-                                "Error durante la eliminación: " + e.getMessage(), 
-                                "Error", 
-                                JOptionPane.ERROR_MESSAGE);
-                            btnEliminar.setEnabled(true);
-                        }
-                    });
-                }
+
+        String input = JOptionPane.showInputDialog(this,
+                "Ingrese el número que desea eliminar:",
+                "Eliminar número",
+                JOptionPane.QUESTION_MESSAGE);
+
+        // Verificar que el usuario no canceló y que ingresó algo
+        if (input == null || input.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            int numeroAEliminar = Integer.parseInt(input.trim());
+
+            // Verificar si el número existe en la lista
+            if (!listaNumeros.contains(numeroAEliminar)) {
+                JOptionPane.showMessageDialog(this,
+                        "El número " + numeroAEliminar + " no se encuentra en los datos",
+                        "Número no encontrado",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
             }
-        });
-        
-         
-        eliminacionThread.start();
-        
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, 
-            "Por favor ingrese un número válido", 
-            "Entrada inválida", 
-            JOptionPane.ERROR_MESSAGE);
-    }
+
+            // Deshabilitar el botón para evitar múltiples operaciones
+            btnEliminar.setEnabled(false);
+
+            Thread eliminacionThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    long inicio = System.currentTimeMillis(); // ⏱️ Tiempo de inicio
+                    try {
+
+                        // eliminar
+                        int cantidadEliminada = 0;
+                        Iterator<Integer> iterator = listaNumeros.iterator();
+                        while (iterator.hasNext()) {
+                            if (iterator.next().equals(numeroAEliminar)) {
+                                iterator.remove();
+                                cantidadEliminada++;
+                            }
+                        }
+
+                        // actualizar vista
+                        actualizarVisualizaciones();
+
+                        long fin = System.currentTimeMillis(); // ⏱️ Tiempo final
+                        long duracion = fin - inicio;
+                        String tiempoFormateado = formatearTiempo(duracion);
+
+                        // Variables finales para el EventQueue
+                        final int cantidadFinal = cantidadEliminada;
+                        final String tiempoFinal = tiempoFormateado;
+
+                        java.awt.EventQueue.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                JOptionPane.showMessageDialog(frmPrincipal.this,
+                                        "Número " + numeroAEliminar + " eliminado por completo.\n"
+                                        + "Los datos han sido actualizados en ambas tablas.",
+                                        "Eliminación completada",
+                                        JOptionPane.INFORMATION_MESSAGE);
+
+                                // Mostrar tiempo en etiquetas correspondientes
+                                lbleliminarh.setText(tiempoFinal);
+                                lbleliminarl.setText(tiempoFinal);
+
+                                btnEliminar.setEnabled(true);
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        // En caso de error, rehabilitar botón
+                        java.awt.EventQueue.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                JOptionPane.showMessageDialog(frmPrincipal.this,
+                                        "Error durante la eliminación: " + e.getMessage(),
+                                        "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                btnEliminar.setEnabled(true);
+                            }
+                        });
+                    }
+                }
+            });
+
+            eliminacionThread.start();
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Por favor ingrese un número válido",
+                    "Entrada inválida",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-           String numeroStr = JOptionPane.showInputDialog(this, "Ingrese el número a buscar:", "Búsqueda", JOptionPane.QUESTION_MESSAGE);
-    lblbuscarh.setText("00:00:000");
-    lblbuscarl.setText("00:00:000");
-    if (numeroStr == null || numeroStr.trim().isEmpty()) {
-        return; // El usuario canceló o no ingresó nada
-    }
-    
-    try {
-        int numeroABuscar = Integer.parseInt(numeroStr.trim());
-        
-        // Obtener los textos de las áreas de texto
-        String textoHash = txtHashSalida.getText();
-        String textoNormal = txtSalida.getText();
-        
-        // Crear hilos para cada tipo de búsqueda
-        Thread hashThread = new Thread(() -> {
-            System.out.println("[HASH] Iniciando búsqueda en tabla hash...");
-            long inicio = System.nanoTime();
-            boolean encontrado = buscarEnTablaHash(textoHash, numeroABuscar);
-            long fin = System.nanoTime();
-            String tiempoFormateado = formatarTiempo(fin - inicio);
-            System.out.println("[HASH] Búsqueda completada en " + tiempoFormateado);
-            lblbuscarh.setText(tiempoFormateado);
-            System.out.println("[HASH] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
-            
-            SwingUtilities.invokeLater(() -> {
-                JOptionPane.showMessageDialog(this, 
-                    "Tabla Hash: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO") + 
-                    "\nTiempo: " + tiempoFormateado,
-                    "Resultado Búsqueda", 
-                    JOptionPane.INFORMATION_MESSAGE);
+        String numeroStr = JOptionPane.showInputDialog(this, "Ingrese el número a buscar:", "Búsqueda", JOptionPane.QUESTION_MESSAGE);
+        lblbuscarh.setText("00:00:000");
+        lblbuscarl.setText("00:00:000");
+        if (numeroStr == null || numeroStr.trim().isEmpty()) {
+            return; // El usuario canceló o no ingresó nada
+        }
+
+        try {
+            int numeroABuscar = Integer.parseInt(numeroStr.trim());
+
+            // Obtener los textos de las áreas de texto
+            String textoHash = txtHashSalida.getText();
+            String textoNormal = txtSalida.getText();
+
+            // Crear hilos para cada tipo de búsqueda
+            Thread hashThread = new Thread(() -> {
+                System.out.println("[HASH] Iniciando búsqueda en tabla hash...");
+                long inicio = System.nanoTime();
+                boolean encontrado = buscarEnTablaHash(textoHash, numeroABuscar);
+                long fin = System.nanoTime();
+                String tiempoFormateado = formatarTiempo(fin - inicio);
+                System.out.println("[HASH] Búsqueda completada en " + tiempoFormateado);
+                lblbuscarh.setText(tiempoFormateado);
+                System.out.println("[HASH] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
+
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(this,
+                            "Tabla Hash: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO")
+                            + "\nTiempo: " + tiempoFormateado,
+                            "Resultado Búsqueda",
+                            JOptionPane.INFORMATION_MESSAGE);
+                });
             });
-        });
-        
-        Thread normalThread = new Thread(() -> {
-            System.out.println("[ENLAZADA] Iniciando búsqueda en tabla enlazada...");
-            long inicio = System.nanoTime();
-            boolean encontrado = buscarEnTablaEnlazada(textoNormal, numeroABuscar);
-            long fin = System.nanoTime();
-            String tiempoFormateado = formatarTiempo(fin - inicio);
-            System.out.println("[ENLAZADA] Búsqueda completada en " + tiempoFormateado);
-            lblbuscarl.setText(tiempoFormateado);
-            System.out.println("[ENLAZADA] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
-            
-            SwingUtilities.invokeLater(() -> {
-                JOptionPane.showMessageDialog(this, 
-                    "Tabla Enlazada: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO") + 
-                    "\nTiempo: " + tiempoFormateado,
-                    "Resultado Búsqueda", 
-                    JOptionPane.INFORMATION_MESSAGE);
+
+            Thread normalThread = new Thread(() -> {
+                System.out.println("[ENLAZADA] Iniciando búsqueda en tabla enlazada...");
+                long inicio = System.nanoTime();
+                boolean encontrado = buscarEnTablaEnlazada(textoNormal, numeroABuscar);
+                long fin = System.nanoTime();
+                String tiempoFormateado = formatarTiempo(fin - inicio);
+                System.out.println("[ENLAZADA] Búsqueda completada en " + tiempoFormateado);
+                lblbuscarl.setText(tiempoFormateado);
+                System.out.println("[ENLAZADA] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
+
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(this,
+                            "Tabla Enlazada: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO")
+                            + "\nTiempo: " + tiempoFormateado,
+                            "Resultado Búsqueda",
+                            JOptionPane.INFORMATION_MESSAGE);
+                });
             });
-        });
-        
-        // Iniciar ambos hilos
-        hashThread.start();
-        normalThread.start();
-        
+
+            // Iniciar ambos hilos
+            hashThread.start();
+            normalThread.start();
+
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Por favor ingrese un número válido", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
-             // Pedir el número a insertar mediante un InputDialog
-    String input = JOptionPane.showInputDialog(this, "Ingrese el número a insertar:", "Agregar Elemento", JOptionPane.QUESTION_MESSAGE);
-    
-    // Validar si se ingresó un valor
-    if (input == null || input.trim().isEmpty()) {
-        JOptionPane.showMessageDialog(this, "No se ingresó ningún número", "Error", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-    
-    try {
-        int numero = Integer.parseInt(input.trim());
-        
-        // Procesar Tabla Hash (txtHashSalida)
-        long inicioHash = System.nanoTime();
-        procesarTablaHash(numero);
-        long finHash = System.nanoTime();
-        long tiempoHash = finHash - inicioHash;
-        
-        // Procesar Lista Enlazada (txtSalida)
-        long inicioLista = System.nanoTime();
-        procesarListaEnlazada(numero);
-        long finLista = System.nanoTime();
-        long tiempoLista = finLista - inicioLista;
-        
-        // Mostrar tiempos de ejecución
-        String tiempoHashStr = formatTiempo(tiempoHash);
-        String tiempoListaStr = formatTiempo(tiempoLista);
-        
-        JOptionPane.showMessageDialog(this, 
-            "Tiempos de inserción:\n" +
-            "• Tabla Hash: " + tiempoHashStr + "\n" +
-            "• Lista Enlazada: " + tiempoListaStr,
-            "Tiempos de Ejecución", 
-            JOptionPane.INFORMATION_MESSAGE);
-            
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(this, "Por favor ingrese un número válido", "Error", JOptionPane.ERROR_MESSAGE);
+        // Pedir el número a insertar mediante un InputDialog
+        String input = JOptionPane.showInputDialog(this, "Ingrese el número a insertar:", "Agregar Elemento", JOptionPane.QUESTION_MESSAGE);
+
+        // Validar si se ingresó un valor
+        if (input == null || input.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No se ingresó ningún número", "Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int numero = Integer.parseInt(input.trim());
+
+            // Procesar Tabla Hash (txtHashSalida)
+            long inicioHash = System.nanoTime();
+            procesarTablaHash(numero);
+            long finHash = System.nanoTime();
+            long tiempoHash = finHash - inicioHash;
+
+            // Procesar Lista Enlazada (txtSalida)
+            long inicioLista = System.nanoTime();
+            procesarListaEnlazada(numero);
+            long finLista = System.nanoTime();
+            long tiempoLista = finLista - inicioLista;
+
+            // Mostrar tiempos de ejecución
+            String tiempoHashStr = formatTiempo(tiempoHash);
+            String tiempoListaStr = formatTiempo(tiempoLista);
+
+            JOptionPane.showMessageDialog(this,
+                    "Tiempos de inserción:\n"
+                    + "• Tabla Hash: " + tiempoHashStr + "\n"
+                    + "• Lista Enlazada: " + tiempoListaStr,
+                    "Tiempos de Ejecución",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Por favor ingrese un número válido", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnAgregarActionPerformed
 
-     private void preguntarCargarArchivo() {
+    private void preguntarCargarArchivo() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
