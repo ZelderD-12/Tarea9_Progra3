@@ -6,12 +6,15 @@
 package tarea_9;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
@@ -32,10 +35,10 @@ public class frmPrincipal extends javax.swing.JFrame {
     private lstLinkedList<String> modeloLista;
     private lblTiempoLinkedList lblTiempoLinkedList;
     private lblTiempoHash lblTiempoHash;
+    private int contadorClaves = 0;
 
-    /**
-     * Creates new form frmPrincipal
-     */
+
+
     public frmPrincipal() {
         initComponents();
         getContentPane().setBackground(new Color(51, 255, 168));
@@ -47,6 +50,10 @@ public class frmPrincipal extends javax.swing.JFrame {
         linkedList = new linkedList<>();
         modeloHash = new tblHashSet();
         modeloLista = new lstLinkedList<>("Elementos LinkedList");
+     
+        this.txtHashSalida = txtHashSalida;
+        this.txtSalida = txtSalida;
+        
     }
 
     
@@ -162,8 +169,217 @@ private void actualizarVisualizaciones() {
       }
     }
     
+    private void procesarNuevoValor(String valor) {
+            try {
+        // 1. Verificar y agregar al HashSet
+        if (hashSet != null) {
+            if (!hashSet.add(valor)) {
+                // Solo mostrar advertencia si es interacción directa (no carga inicial)
+                if (JOptionPane.getRootFrame().isActive()) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "El dato '" + valor + "' ya existe",
+                        "Dato duplicado",
+                        JOptionPane.WARNING_MESSAGE
+                    );
+                }
+                return;
+            }
+
+            // 2. Actualizar visualización en txtHashSalida
+            if (txtHashSalida != null) {
+                txtHashSalida.append("Clave: " + contadorClaves + " → Valor: " + valor + "\n");
+            }
+        }
+
+        // 3. Incrementar contador (solo si fue valor nuevo)
+        contadorClaves++;
+
+        // 4. Agregar a LinkedList
+        if (linkedList != null) {
+            linkedList.add(valor);
+        }
+
+        // 5. Procesar números en txtSalida
+        try {
+            int numero = Integer.parseInt(valor);
+            if (listaNumeros != null) {
+                listaNumeros.add(numero);
+            }
+            if (txtSalida != null) {
+                txtSalida.append(valor + "\n");
+            }
+        } catch (NumberFormatException e) {
+            // No es número, continuar sin problemas
+        }
+
+        // 6. Actualizar modelo visual (JList, JTable, etc.)
+        if (modeloLista != null) {
+            modeloLista.addElement(valor);
+        }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Error al procesar '" + valor + "': " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
     
+     private void procesarDatos() {
+        // Pedir el número a insertar
+        String input = JOptionPane.showInputDialog(null, "Ingrese el número a insertar:", "Entrada de datos", JOptionPane.QUESTION_MESSAGE);
+        if (input == null || input.trim().isEmpty()) {
+            return; // El usuario canceló o no ingresó nada
+        }
+        
+        try {
+            int numeroInsertar = Integer.parseInt(input.trim());
+            
+            // Procesar tabla hash
+            long inicioHash = System.nanoTime();
+            procesarTablaHash(numeroInsertar);
+            long finHash = System.nanoTime();
+            long tiempoHash = finHash - inicioHash;
+            
+            // Procesar tabla enlazada
+            long inicioLista = System.nanoTime();
+            procesarTablaEnlazada(numeroInsertar);
+            long finLista = System.nanoTime();
+            long tiempoLista = finLista - inicioLista;
+            
+            // Mostrar tiempos
+            String tiempoHashStr = formatTiempo(tiempoHash);
+            String tiempoListaStr = formatTiempo(tiempoLista);
+            
+            JOptionPane.showMessageDialog(null, 
+                "Tiempos de inserción:\n" +
+                "Tabla Hash: " + tiempoHashStr + "\n" +
+                "Tabla Enlazada: " + tiempoListaStr,
+                "Resultados de Tiempo",
+                JOptionPane.INFORMATION_MESSAGE);
+                
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Por favor ingrese un número válido.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
     
+       private void procesarListaEnlazada(int numero) {
+    // Obtener el texto actual del área de texto
+    String textoActual = txtSalida.getText();
+    String[] numerosStr = textoActual.split("\n");
+    
+    // Crear una lista enlazada
+    LinkedList<Integer> lista = new LinkedList<>();
+    
+    // Procesar números existentes
+    for (String numStr : numerosStr) {
+        try {
+            int num = Integer.parseInt(numStr.trim());
+            lista.add(num);
+        } catch (NumberFormatException ex) {
+            // Ignorar líneas no numéricas
+        }
+    }
+    
+    // Insertar el nuevo número al inicio (puedes cambiarlo a addLast() si prefieres)
+    lista.addFirst(numero);
+    
+    // Reconstruir el texto para el JTextArea
+    StringBuilder nuevoTexto = new StringBuilder();
+    for (Integer num : lista) {
+        nuevoTexto.append(num).append("\n");
+    }
+    
+    // Actualizar el área de texto
+    txtSalida.setText(nuevoTexto.toString());
+}
+    
+    private void procesarTablaHash(int numeroInsertar) {
+        // Obtener texto del área
+        String texto = txtHashSalida.getText();
+        String[] lineas = texto.split("\n");
+        
+        // Crear tabla hash
+        Hashtable<Integer, Integer> tablaHash = new Hashtable<>();
+        
+        // Procesar cada línea
+        for (String linea : lineas) {
+            if (linea.contains("→")) {
+                String[] partes = linea.split("→");
+                if (partes.length == 2) {
+                    try {
+                        // Extraer clave
+                        String claveStr = partes[0].replace("Clave:", "").trim();
+                        int clave = Integer.parseInt(claveStr);
+                        
+                        // Extraer valor
+                        String valorStr = partes[1].replace("Valor:", "").trim();
+                        int valor = Integer.parseInt(valorStr);
+                        
+                        tablaHash.put(clave, valor);
+                    } catch (NumberFormatException ex) {
+                        // Ignorar líneas mal formateadas
+                    }
+                }
+            }
+        }
+        
+        // Insertar nuevo elemento (usamos un hash simple para la clave)
+        int claveNueva = Math.abs(numeroInsertar % 1000000); // Ejemplo de función hash simple
+        tablaHash.put(claveNueva, numeroInsertar);
+        
+        // Actualizar el JTextArea
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<Integer, Integer> entry : tablaHash.entrySet()) {
+            sb.append("Clave: ").append(entry.getKey())
+              .append(" → Valor: ").append(entry.getValue())
+              .append("\n");
+        }
+        txtHashSalida.setText(sb.toString());
+    }
+    
+    private void procesarTablaEnlazada(int numeroInsertar) {
+        // Obtener texto del área
+        String texto = txtSalida.getText();
+        String[] numerosStr = texto.split("\n");
+        
+        // Crear lista enlazada
+        LinkedList<Integer> lista = new LinkedList<>();
+        
+        // Procesar cada número
+        for (String numStr : numerosStr) {
+            try {
+                int num = Integer.parseInt(numStr.trim());
+                lista.add(num);
+            } catch (NumberFormatException ex) {
+                // Ignorar líneas no numéricas
+            }
+        }
+        
+        // Insertar nuevo elemento al inicio
+        lista.addFirst(numeroInsertar);
+        
+        // Actualizar el JTextArea
+        StringBuilder sb = new StringBuilder();
+        for (Integer num : lista) {
+            sb.append(num).append("\n");
+        }
+        txtSalida.setText(sb.toString());
+    }
+    
+    private String formatTiempo(long nanos) {
+        long milis = nanos / 1_000_000;
+        long segundos = milis / 1000;
+        long minutos = segundos / 60;
+        
+        milis = milis % 1000;
+        segundos = segundos % 60;
+        
+        return String.format("%d min, %d seg, %d ms", minutos, segundos, milis);
+    }
      
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -521,6 +737,8 @@ private void actualizarVisualizaciones() {
 
     // Mostrar en JTextArea existente
     txtSalida.setText(""); // Limpia el área de texto
+    
+
     for (Integer numero : listaEnlazada) {
         txtSalida.append(numero + "\n");
     }
@@ -701,78 +919,44 @@ private void actualizarVisualizaciones() {
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
-// 1. Obtener dato mediante diálogo de entrada
-    String valor = JOptionPane.showInputDialog(
-        this,
-        "Ingrese el valor a agregar:",
-        "Agregar elemento",
-        JOptionPane.PLAIN_MESSAGE
-    );
-
-    // 2. Si el usuario cancela o deja vacío
-    if (valor == null || valor.trim().isEmpty()) {
+             // Pedir el número a insertar mediante un InputDialog
+    String input = JOptionPane.showInputDialog(this, "Ingrese el número a insertar:", "Agregar Elemento", JOptionPane.QUESTION_MESSAGE);
+    
+    // Validar si se ingresó un valor
+    if (input == null || input.trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "No se ingresó ningún número", "Error", JOptionPane.WARNING_MESSAGE);
         return;
     }
-    valor = valor.trim();
-
+    
     try {
-        // 3. Procesar en HashSet y actualizar txtHashSalida con formato
-        if (hashSet != null) {
-            if (!hashSet.add(valor)) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "El dato ya existe en el HashSet",
-                    "Dato duplicado",
-                    JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
+        int numero = Integer.parseInt(input.trim());
+        
+        // Procesar Tabla Hash (txtHashSalida)
+        long inicioHash = System.nanoTime();
+        procesarTablaHash(numero);
+        long finHash = System.nanoTime();
+        long tiempoHash = finHash - inicioHash;
+        
+        // Procesar Lista Enlazada (txtSalida)
+        long inicioLista = System.nanoTime();
+        procesarListaEnlazada(numero);
+        long finLista = System.nanoTime();
+        long tiempoLista = finLista - inicioLista;
+        
+        // Mostrar tiempos de ejecución
+        String tiempoHashStr = formatTiempo(tiempoHash);
+        String tiempoListaStr = formatTiempo(tiempoLista);
+        
+        JOptionPane.showMessageDialog(this, 
+            "Tiempos de inserción:\n" +
+            "• Tabla Hash: " + tiempoHashStr + "\n" +
+            "• Lista Enlazada: " + tiempoListaStr,
+            "Tiempos de Ejecución", 
+            JOptionPane.INFORMATION_MESSAGE);
             
-            // Actualizar txtHashSalida con el formato Clave → Valor
-            if (txtHashSalida != null) {
-                StringBuilder sb = new StringBuilder();
-                int index = 0;
-                for (String item : hashSet) {
-                    sb.append("Clave: ").append(index++)
-                      .append(" → Valor: ").append(item)
-                      .append("\n");
-                }
-                txtHashSalida.setText(sb.toString());
-            }
+    } catch (NumberFormatException ex) {
+        JOptionPane.showMessageDialog(this, "Por favor ingrese un número válido", "Error", JOptionPane.ERROR_MESSAGE);
         }
-
-        // 4. Procesar en LinkedList
-        if (linkedList != null) {
-            linkedList.add(valor);
-        }
-
-        // 5. Procesar números y actualizar txtSalida (formato simple)
-        try {
-            int numero = Integer.parseInt(valor);
-            if (listaNumeros != null) {
-                listaNumeros.add(numero);
-            }
-            // Mostrar en txtSalida tal cual (sin formato especial)
-            if (txtSalida != null) {
-                txtSalida.append(valor + "\n");
-            }
-        } catch (NumberFormatException e) {
-            // No es número, no hacer nada en txtSalida
-        }
-
-        // 6. Actualizar modelo visual si existe
-        if (modeloLista != null) {
-            modeloLista.addElement(valor);
-        }
-
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(
-            this,
-            "Error al agregar: " + e.getMessage(),
-            "Error",
-            JOptionPane.ERROR_MESSAGE
-        );
-    }
     }//GEN-LAST:event_btnAgregarActionPerformed
 
      private void preguntarCargarArchivo() {
