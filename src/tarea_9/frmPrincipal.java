@@ -701,63 +701,78 @@ private void actualizarVisualizaciones() {
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
-       String valor = txaDatos.getText().trim();
-    
-    if (!valor.isEmpty()) {
-        try {
-            // 1. Procesar en HashSet
-            if (hashSet != null && !hashSet.add(valor)) {
-                JOptionPane.showMessageDialog(this, 
-                    "El dato ya existe en el HashSet", 
-                    "Dato duplicado", 
-                    JOptionPane.WARNING_MESSAGE);
+// 1. Obtener dato mediante diálogo de entrada
+    String valor = JOptionPane.showInputDialog(
+        this,
+        "Ingrese el valor a agregar:",
+        "Agregar elemento",
+        JOptionPane.PLAIN_MESSAGE
+    );
+
+    // 2. Si el usuario cancela o deja vacío
+    if (valor == null || valor.trim().isEmpty()) {
+        return;
+    }
+    valor = valor.trim();
+
+    try {
+        // 3. Procesar en HashSet y actualizar txtHashSalida con formato
+        if (hashSet != null) {
+            if (!hashSet.add(valor)) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "El dato ya existe en el HashSet",
+                    "Dato duplicado",
+                    JOptionPane.WARNING_MESSAGE
+                );
                 return;
             }
-
-            // 2. Procesar en LinkedList
-            if (linkedList != null) {
-                linkedList.add(valor);
-            }
-
-            // 3. Actualizar modelo visual
-            if (modeloLista != null) {
-                modeloLista.addElement(valor);
-            }
-
-            // 4. Procesar números
-            try {
-                int numero = Integer.parseInt(valor);
-                listaNumeros.add(numero);
-                
-                // Actualizar txtSalida (Lista Enlazada)
-                if (txtSalida != null) {
-                    txtSalida.append(numero + "\n");
+            
+            // Actualizar txtHashSalida con el formato Clave → Valor
+            if (txtHashSalida != null) {
+                StringBuilder sb = new StringBuilder();
+                int index = 0;
+                for (String item : hashSet) {
+                    sb.append("Clave: ").append(index++)
+                      .append(" → Valor: ").append(item)
+                      .append("\n");
                 }
-            } catch (NumberFormatException e) {
-                // No es número válido
+                txtHashSalida.setText(sb.toString());
             }
+        }
 
-            // 5. Actualizar todas las visualizaciones
-            actualizarVisualizacionesCompletas();
+        // 4. Procesar en LinkedList
+        if (linkedList != null) {
+            linkedList.add(valor);
+        }
 
-            // 6. Mostrar confirmación
-            if (txaDatos != null) {
-                txaDatos.append("Dato agregado: " + valor + "\n");
-                txaDatos.setCaretPosition(txaDatos.getDocument().getLength());
+        // 5. Procesar números y actualizar txtSalida (formato simple)
+        try {
+            int numero = Integer.parseInt(valor);
+            if (listaNumeros != null) {
+                listaNumeros.add(numero);
             }
-
-            // Limpiar campo de entrada
-            txaDatos.setText("");
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                "Error inesperado: " + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
+            // Mostrar en txtSalida tal cual (sin formato especial)
+            if (txtSalida != null) {
+                txtSalida.append(valor + "\n");
+            }
+        } catch (NumberFormatException e) {
+            // No es número, no hacer nada en txtSalida
         }
-    } else {
-        preguntarCargarArchivo();
+
+        // 6. Actualizar modelo visual si existe
+        if (modeloLista != null) {
+            modeloLista.addElement(valor);
         }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Error al agregar: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        );
+    }
     }//GEN-LAST:event_btnAgregarActionPerformed
 
      private void preguntarCargarArchivo() {
