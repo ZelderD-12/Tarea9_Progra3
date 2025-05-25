@@ -19,11 +19,19 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import metodo.hashSet;
 
 //Hola
 public class frmPrincipal extends javax.swing.JFrame {
 
     private ArrayList<Integer> listaNumeros = new ArrayList<>();
+    private hashSet<String> hashSet;
+    private linkedList<String> linkedList;
+    private tblHashSet modeloHash;
+    private lstLinkedList<String> modeloLista;
+    private lblTiempoLinkedList lblTiempoLinkedList;
+    private lblTiempoHash lblTiempoHash;
 
     /**
      * Creates new form frmPrincipal
@@ -31,9 +39,14 @@ public class frmPrincipal extends javax.swing.JFrame {
     public frmPrincipal() {
         initComponents();
         getContentPane().setBackground(new Color(51, 255, 168));
-        txaDatos.setEditable(false);
         txaDatos.setBackground(Color.WHITE);
         txaDatos.setForeground(Color.BLACK);
+        
+         // Inicialización de estructuras personalizadas
+        hashSet = new hashSet<>();
+        linkedList = new linkedList<>();
+        modeloHash = new tblHashSet();
+        modeloLista = new lstLinkedList<>("Elementos LinkedList");
     }
 
     
@@ -66,6 +79,88 @@ private void actualizarVisualizaciones() {
         txtHashSalida.append("Clave: " + entrada.getKey() + " → Valor: " + entrada.getValue() + "\n");
     }
 }
+
+        // Métodos para la Tabla Hash de busqueda
+    private boolean buscarEnTablaHash(String texto, int numero) {
+        if (texto == null || texto.isEmpty()) return false;
+    
+     String[] entradas = texto.split("\n");
+        for (String entrada : entradas) {
+         try {
+             if (entrada.contains("Clave:") && entrada.contains("→ Valor:")) {
+                    String claveStr = entrada.split("Clave:")[1].split("→")[0].trim();
+                  int clave = Integer.parseInt(claveStr);
+                 if (clave == numero) {
+                        return true;
+                   }
+                }
+            } catch (Exception ex) {
+                continue;
+         }
+     }
+     return false;
+    }
+        // Metodo para la Tabla Enlazada de Busqueda
+    private boolean buscarEnTablaEnlazada(String texto, int numero) {
+     if (texto == null || texto.isEmpty()) return false;
+    
+        String[] numeros = texto.split("[\\s,;]+");
+     for (String numStr : numeros) {
+         try {
+             int num = Integer.parseInt(numStr.trim());
+               if (num == numero) {
+                   return true;
+               }
+         } catch (NumberFormatException ex) {
+                continue;
+          }
+        }
+        return false;
+    }
+    
+    private String formatarTiempo(long nanos) {
+     long milisegundos = nanos / 1_000_000;
+        long segundos = milisegundos / 1_000;
+        long minutos = segundos / 60;
+    
+        milisegundos = milisegundos % 1_000;
+        segundos = segundos % 60;
+    
+        return String.format("%02d:%02d.%03d", minutos, segundos, milisegundos);
+    }
+    
+    private void actualizarVisualizacionesCompletas() {
+    // Actualizar txtSalida (Lista Enlazada)
+    if (txtSalida != null && linkedList != null) {
+        txtSalida.setText(""); // Limpiar contenido previo
+        
+        // Mostrar todos los elementos de la lista enlazada
+        for (String elemento : linkedList.elements()) {
+            txtSalida.append(elemento + "\n");
+        }
+    }
+    
+    // Actualizar txtHashSalida (Tabla Hash)
+    if (txtHashSalida != null && linkedList != null) {
+        txtHashSalida.setText(""); // Limpiar contenido previo
+        Map<Integer, String> tablaHash = new HashMap<>();
+        int posicion = 0;
+        
+        // Llenar la tabla hash
+        for (String elemento : linkedList.toStandardList()) {
+            tablaHash.put(posicion++, elemento);
+            txtHashSalida.append("Clave: " + (posicion-1) + " → Valor: " + elemento + "\n");
+        }
+    }
+    
+    // Actualizar txaDatos (consola principal)
+    if (txaDatos != null && linkedList != null) {
+        txaDatos.setText("");
+        for (String elemento : linkedList.elements()) {
+            txaDatos.append(elemento + "\n");
+        }
+      }
+    }
     
     
     
@@ -129,6 +224,11 @@ private void actualizarVisualizaciones() {
         btnAgregar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         btnAgregar.setForeground(new java.awt.Color(255, 255, 255));
         btnAgregar.setText("Agregar");
+        btnAgregar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAgregarActionPerformed(evt);
+            }
+        });
 
         btnCargar.setBackground(new java.awt.Color(0, 0, 153));
         btnCargar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
@@ -144,6 +244,11 @@ private void actualizarVisualizaciones() {
         btnBuscar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         btnBuscar.setForeground(new java.awt.Color(255, 255, 255));
         btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
 
         btnEliminar.setBackground(new java.awt.Color(0, 0, 153));
         btnEliminar.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
@@ -290,14 +395,15 @@ private void actualizarVisualizaciones() {
                                 .addComponent(jLabel14)
                                 .addGap(22, 22, 22)
                                 .addComponent(lblagregarl))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel16)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblbuscarl))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel18)
-                                .addGap(22, 22, 22)
-                                .addComponent(lbleliminarl)))))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(jLabel16)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(lblbuscarl))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(jLabel18)
+                                    .addGap(22, 22, 22)
+                                    .addComponent(lbleliminarl))))))
                 .addContainerGap(30, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -531,9 +637,148 @@ private void actualizarVisualizaciones() {
     }
     }//GEN-LAST:event_btnEliminarActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+           String numeroStr = JOptionPane.showInputDialog(this, "Ingrese el número a buscar:", "Búsqueda", JOptionPane.QUESTION_MESSAGE);
+    lblbuscarh.setText("00:00:000");
+    lblbuscarl.setText("00:00:000");
+    if (numeroStr == null || numeroStr.trim().isEmpty()) {
+        return; // El usuario canceló o no ingresó nada
+    }
+    
+    try {
+        int numeroABuscar = Integer.parseInt(numeroStr.trim());
+        
+        // Obtener los textos de las áreas de texto
+        String textoHash = txtHashSalida.getText();
+        String textoNormal = txtSalida.getText();
+        
+        // Crear hilos para cada tipo de búsqueda
+        Thread hashThread = new Thread(() -> {
+            System.out.println("[HASH] Iniciando búsqueda en tabla hash...");
+            long inicio = System.nanoTime();
+            boolean encontrado = buscarEnTablaHash(textoHash, numeroABuscar);
+            long fin = System.nanoTime();
+            String tiempoFormateado = formatarTiempo(fin - inicio);
+            System.out.println("[HASH] Búsqueda completada en " + tiempoFormateado);
+            lblbuscarh.setText(tiempoFormateado);
+            System.out.println("[HASH] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
+            
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(this, 
+                    "Tabla Hash: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO") + 
+                    "\nTiempo: " + tiempoFormateado,
+                    "Resultado Búsqueda", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            });
+        });
+        
+        Thread normalThread = new Thread(() -> {
+            System.out.println("[ENLAZADA] Iniciando búsqueda en tabla enlazada...");
+            long inicio = System.nanoTime();
+            boolean encontrado = buscarEnTablaEnlazada(textoNormal, numeroABuscar);
+            long fin = System.nanoTime();
+            String tiempoFormateado = formatarTiempo(fin - inicio);
+            System.out.println("[ENLAZADA] Búsqueda completada en " + tiempoFormateado);
+            lblbuscarl.setText(tiempoFormateado);
+            System.out.println("[ENLAZADA] Resultado: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO"));
+            
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(this, 
+                    "Tabla Enlazada: " + (encontrado ? "ENCONTRADO" : "NO ENCONTRADO") + 
+                    "\nTiempo: " + tiempoFormateado,
+                    "Resultado Búsqueda", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            });
+        });
+        
+        // Iniciar ambos hilos
+        hashThread.start();
+        normalThread.start();
+        
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Por favor ingrese un número válido", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnBuscarActionPerformed
+
+    private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
+// 1. Obtener dato mediante diálogo de entrada
+    String valor = JOptionPane.showInputDialog(
+        this,
+        "Ingrese el valor a agregar:",
+        "Agregar elemento",
+        JOptionPane.PLAIN_MESSAGE
+    );
+
+    // 2. Si el usuario cancela o deja vacío
+    if (valor == null || valor.trim().isEmpty()) {
+        return;
+    }
+    valor = valor.trim();
+
+    try {
+        // 3. Procesar en HashSet y actualizar txtHashSalida con formato
+        if (hashSet != null) {
+            if (!hashSet.add(valor)) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "El dato ya existe en el HashSet",
+                    "Dato duplicado",
+                    JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+            
+            // Actualizar txtHashSalida con el formato Clave → Valor
+            if (txtHashSalida != null) {
+                StringBuilder sb = new StringBuilder();
+                int index = 0;
+                for (String item : hashSet) {
+                    sb.append("Clave: ").append(index++)
+                      .append(" → Valor: ").append(item)
+                      .append("\n");
+                }
+                txtHashSalida.setText(sb.toString());
+            }
+        }
+
+        // 4. Procesar en LinkedList
+        if (linkedList != null) {
+            linkedList.add(valor);
+        }
+
+        // 5. Procesar números y actualizar txtSalida (formato simple)
+        try {
+            int numero = Integer.parseInt(valor);
+            if (listaNumeros != null) {
+                listaNumeros.add(numero);
+            }
+            // Mostrar en txtSalida tal cual (sin formato especial)
+            if (txtSalida != null) {
+                txtSalida.append(valor + "\n");
+            }
+        } catch (NumberFormatException e) {
+            // No es número, no hacer nada en txtSalida
+        }
+
+        // 6. Actualizar modelo visual si existe
+        if (modeloLista != null) {
+            modeloLista.addElement(valor);
+        }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Error al agregar: " + e.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE
+        );
+    }
+    }//GEN-LAST:event_btnAgregarActionPerformed
+
+     private void preguntarCargarArchivo() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
