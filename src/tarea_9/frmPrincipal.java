@@ -36,6 +36,10 @@ public class frmPrincipal extends javax.swing.JFrame {
     private lblTiempoLinkedList lblTiempoLinkedList;
     private lblTiempoHash lblTiempoHash;
     private int contadorClaves = 0;
+     
+     
+
+    
 
     public frmPrincipal() {
         initComponents();
@@ -793,108 +797,213 @@ public class frmPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_btnMostrarActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-        // Verificar que hay datos cargados
-        if (listaNumeros.isEmpty()) {
+         if (listaNumeros.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+                "No hay datos cargados para eliminar",
+                "Sin datos",
+                JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    String input = JOptionPane.showInputDialog(this,
+            "Ingrese el número que desea eliminar:",
+            "Eliminar número",
+            JOptionPane.QUESTION_MESSAGE);
+
+    // Verificar que el usuario no canceló y que ingresó algo
+    if (input == null || input.trim().isEmpty()) {
+        return;
+    }
+
+    // Inicializar las etiquetas de tiempo
+    lbleliminarh.setText("00:00:000");
+    lbleliminarl.setText("00:00:000");
+
+    try {
+        int numeroAEliminar = Integer.parseInt(input.trim());
+
+        // Verificar si el número existe en la lista
+        if (!listaNumeros.contains(numeroAEliminar)) {
             JOptionPane.showMessageDialog(this,
-                    "No hay datos cargados para eliminar",
-                    "Sin datos",
-                    JOptionPane.WARNING_MESSAGE);
+                    "El número " + numeroAEliminar + " no se encuentra en los datos",
+                    "Número no encontrado",
+                    JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        String input = JOptionPane.showInputDialog(this,
-                "Ingrese el número que desea eliminar:",
-                "Eliminar número",
-                JOptionPane.QUESTION_MESSAGE);
+        // Deshabilitar el botón para evitar múltiples operaciones
+        btnEliminar.setEnabled(false);
 
-        // Verificar que el usuario no canceló y que ingresó algo
-        if (input == null || input.trim().isEmpty()) {
-            return;
-        }
+        // Variables para almacenar las cantidades eliminadas
+        final int[] cantidadEliminadaHash = {0};
+        final int[] cantidadEliminadaEnlazada = {0};
 
-        try {
-            int numeroAEliminar = Integer.parseInt(input.trim());
-
-            // Verificar si el número existe en la lista
-            if (!listaNumeros.contains(numeroAEliminar)) {
-                JOptionPane.showMessageDialog(this,
-                        "El número " + numeroAEliminar + " no se encuentra en los datos",
-                        "Número no encontrado",
-                        JOptionPane.INFORMATION_MESSAGE);
-                return;
+        // Crear hilos separados para eliminación en Hash y Lista Enlazada
+        Thread hashThread = new Thread(() -> {
+            System.out.println("[HASH] Iniciando eliminación en tabla hash...");
+            long inicio = System.nanoTime();
+            
+            try {
+                // Eliminar de la tabla hash (basado en el texto de txtHashSalida)
+                cantidadEliminadaHash[0] = eliminarDeTablaHash(numeroAEliminar);
+                
+                long fin = System.nanoTime();
+                String tiempoFormateado = formatoTiempo(fin - inicio);
+                System.out.println("[HASH] Eliminación completada en " + tiempoFormateado);
+                
+                SwingUtilities.invokeLater(() -> {
+                    lbleliminarh.setText(tiempoFormateado);
+                    System.out.println("[HASH] Cantidad eliminada: " + cantidadEliminadaHash[0]);
+                });
+                
+            } catch (Exception e) {
+                System.err.println("[HASH] Error durante eliminación: " + e.getMessage());
+                SwingUtilities.invokeLater(() -> {
+                    btnEliminar.setEnabled(true);
+                });
             }
+        });
 
-            // Deshabilitar el botón para evitar múltiples operaciones
-            btnEliminar.setEnabled(false);
-
-            Thread eliminacionThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    long inicio = System.currentTimeMillis(); // ⏱️ Tiempo de inicio
-                    try {
-
-                        // eliminar
-                        int cantidadEliminada = 0;
-                        Iterator<Integer> iterator = listaNumeros.iterator();
-                        while (iterator.hasNext()) {
-                            if (iterator.next().equals(numeroAEliminar)) {
-                                iterator.remove();
-                                cantidadEliminada++;
-                            }
-                        }
-
-                        // actualizar vista
-                        actualizarVisualizaciones();
-
-                        long fin = System.currentTimeMillis(); // ⏱️ Tiempo final
-                        long duracion = fin - inicio;
-                        String tiempoFormateado = formatearTiempo(duracion);
-
-                        // Variables finales para el EventQueue
-                        final int cantidadFinal = cantidadEliminada;
-                        final String tiempoFinal = tiempoFormateado;
-
-                        java.awt.EventQueue.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                JOptionPane.showMessageDialog(frmPrincipal.this,
-                                        "Número " + numeroAEliminar + " eliminado por completo.\n"
-                                        + "Los datos han sido actualizados en ambas tablas.",
-                                        "Eliminación completada",
-                                        JOptionPane.INFORMATION_MESSAGE);
-
-                                // Mostrar tiempo en etiquetas correspondientes
-                                lbleliminarh.setText(tiempoFinal);
-                                lbleliminarl.setText(tiempoFinal);
-
-                                btnEliminar.setEnabled(true);
-                            }
-                        });
-
-                    } catch (Exception e) {
-                        // En caso de error, rehabilitar botón
-                        java.awt.EventQueue.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                JOptionPane.showMessageDialog(frmPrincipal.this,
-                                        "Error durante la eliminación: " + e.getMessage(),
-                                        "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                                btnEliminar.setEnabled(true);
-                            }
-                        });
+        Thread enlazadaThread = new Thread(() -> {
+            System.out.println("[ENLAZADA] Iniciando eliminación en lista enlazada...");
+            long inicio = System.nanoTime();
+            
+            try {
+                // Eliminar de la lista enlazada mostrada en txtSalida
+                cantidadEliminadaEnlazada[0] = eliminarDeListaEnlazada(numeroAEliminar);
+                
+                // También eliminar de la lista original para mantener consistencia
+                Iterator<Integer> iterator = listaNumeros.iterator();
+                while (iterator.hasNext()) {
+                    if (iterator.next().equals(numeroAEliminar)) {
+                        iterator.remove();
                     }
                 }
-            });
+                
+                long fin = System.nanoTime();
+                String tiempoFormateado = formatoTiempo(fin - inicio);
+                System.out.println("[ENLAZADA] Eliminación completada en " + tiempoFormateado);
+                
+                SwingUtilities.invokeLater(() -> {
+                    lbleliminarl.setText(tiempoFormateado);
+                    System.out.println("[ENLAZADA] Cantidad eliminada: " + cantidadEliminadaEnlazada[0]);
+                    
+                    // Mostrar mensaje de confirmación
+                    JOptionPane.showMessageDialog(frmPrincipal.this,
+                            "Número " + numeroAEliminar + " eliminado por completo.\n"
+                            + "Hash: " + cantidadEliminadaHash[0] + " elementos eliminados\n"
+                            + "Lista Enlazada: " + cantidadEliminadaEnlazada[0] + " elementos eliminados\n"
+                            + "Los datos han sido actualizados en ambas tablas.",
+                            "Eliminación completada",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Rehabilitar el botón
+                    btnEliminar.setEnabled(true);
+                });
+                
+            } catch (Exception e) {
+                System.err.println("[ENLAZADA] Error durante eliminación: " + e.getMessage());
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(frmPrincipal.this,
+                            "Error durante la eliminación en lista enlazada: " + e.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    btnEliminar.setEnabled(true);
+                });
+            }
+        });
 
-            eliminacionThread.start();
+        // Iniciar ambos hilos
+        hashThread.start();
+        enlazadaThread.start();
 
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Por favor ingrese un número válido",
-                    "Entrada inválida",
-                    JOptionPane.ERROR_MESSAGE);
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this,
+                "Por favor ingrese un número válido",
+                "Entrada inválida",
+                JOptionPane.ERROR_MESSAGE);
+        btnEliminar.setEnabled(true);
+    }
+}
+
+// Método auxiliar para eliminar de la tabla hash
+private int eliminarDeTablaHash(int numeroAEliminar) {
+    // Obtener el texto actual de la tabla hash
+    String textoHash = txtHashSalida.getText();
+    String[] lineas = textoHash.split("\n");
+    StringBuilder nuevoTexto = new StringBuilder();
+    int cantidadEliminada = 0;
+    
+    for (String linea : lineas) {
+        if (linea.trim().isEmpty()) {
+            continue;
         }
+        
+        // Buscar el patrón "Clave: X → Valor: Y"
+        if (linea.contains("→")) {
+            String[] partes = linea.split("→");
+            if (partes.length == 2) {
+                try {
+                    String valorParte = partes[1].trim().replace("Valor:", "").trim();
+                    int valor = Integer.parseInt(valorParte);
+                    
+                    if (valor == numeroAEliminar) {
+                        cantidadEliminada++;
+                        // No agregar esta línea al nuevo texto (eliminar)
+                        continue;
+                    }
+                } catch (NumberFormatException e) {
+                    // Si no se puede parsear, mantener la línea
+                }
+            }
+        }
+        
+        // Si llegamos aquí, mantener la línea
+        nuevoTexto.append(linea).append("\n");
+    }
+    
+    // Actualizar el texto en el área correspondiente
+    SwingUtilities.invokeLater(() -> {
+        txtHashSalida.setText(nuevoTexto.toString());
+    });
+    
+    return cantidadEliminada;
+}
+
+// Método auxiliar para eliminar de la lista enlazada
+private int eliminarDeListaEnlazada(int numeroAEliminar) {
+    // Obtener el texto actual de la lista enlazada
+    String textoEnlazada = txtSalida.getText();
+    String[] lineas = textoEnlazada.split("\n");
+    StringBuilder nuevoTexto = new StringBuilder();
+    int cantidadEliminada = 0;
+    
+    for (String linea : lineas) {
+        if (linea.trim().isEmpty()) {
+            continue;
+        }
+        
+        try {
+            int numero = Integer.parseInt(linea.trim());
+            if (numero == numeroAEliminar) {
+                cantidadEliminada++;
+                // No agregar esta línea al nuevo texto (eliminar)
+                continue;
+            }
+        } catch (NumberFormatException e) {
+            // Si no se puede parsear, mantener la línea
+        }
+        
+        // Si llegamos aquí, mantener la línea
+        nuevoTexto.append(linea).append("\n");
+    }
+    
+    // Actualizar el texto en el área correspondiente
+    SwingUtilities.invokeLater(() -> {
+        txtSalida.setText(nuevoTexto.toString());
+    });
+    
+    return cantidadEliminada;
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
